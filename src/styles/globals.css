@@ -22,3 +22,16 @@
     text-wrap: balance;
   }
 }
+
+.MuiIconButton-root{
+  @apply !text-white
+}
+.toolbarWrap .MuiButton-root{
+  @apply !text-black !bg-white !mr-3
+}
+.resultImg{
+  @apply p-8 pt-24 border border-black
+}
+.resultImg img{
+  @apply mx-auto
+}

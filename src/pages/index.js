@@ -2,12 +2,10 @@ import React, { useState } from "react";
 import Cropper from "react-easy-crop";
 import Slider from "@material-ui/core/Slider";
 import Typography from "@material-ui/core/Typography";
-import { withStyles } from "@material-ui/core/styles";
 import { getOrientation } from "get-orientation/browser";
 import ImgDialog from "./ImgDialog";
-import { getCroppedImg, getRotatedImage } from "./canvasUtils";
-import Toolbar from "./components/Toolbar";
-import { styles } from "./styles";
+import { getCroppedImg, getRotatedImage } from "../utils/canvasUtils";
+import Toolbar from "../components/Toolbar";
 import { Button } from "@material-ui/core";
 
 const ORIENTATION_TO_ANGLE = {
@@ -76,7 +74,7 @@ const App = ({ classes }) => {
     <div>
       {imageSrc ? (
         <React.Fragment>
-          <div className={classes.cropContainer}>
+          <div className={{}}>
             <Cropper
               image={imageSrc}
               crop={crop}
@@ -89,6 +87,8 @@ const App = ({ classes }) => {
               onZoomChange={setZoom}
             />
           </div>
+          
+          <div className="absolute bottom-0 w-full p-5 text-center bg-black text-white toolbarWrap">
           <Toolbar
             setRotation={setRotation}
             rotation={rotation}
@@ -98,10 +98,9 @@ const App = ({ classes }) => {
             showCroppedImage={showCroppedImage}
             clearImage={clearImage}
           />
-          <div className={classes.sliderContainer}>
             <Typography
               variant="overline"
-              classes={{ root: classes.sliderLabel }}
+              classes={{ root: "" }}
             >
               Resize
             </Typography>
@@ -111,14 +110,14 @@ const App = ({ classes }) => {
               max={10.10}
               step={0.1}
               aria-labelledby="Resize"
-              classes={{ root: classes.slider }}
+              classes={{ root: "" }}
               onChange={(e, aspect) => setAspect(aspect)}
             />
           </div>
           <ImgDialog img={croppedImage} onClose={onClose} />
         </React.Fragment>
       ) : (
-        <div>
+        <div className="flex justify-center items-center h-screen">
           <Button
             variant="contained"
             color="primary"
@@ -147,4 +146,4 @@ function readFile(file) {
   });
 }
 
-export default withStyles(styles)(App);
+export default App
