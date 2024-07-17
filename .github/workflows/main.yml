@@ -1,0 +1,69 @@
+  name: Build and Deploy Olla Map Docker Image
+
+  on:
+    push:
+      branches:
+        - master
+    pull_request:
+      branches:
+        - master
+
+  jobs:
+    build:
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v2
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v1
+
+        - name: Login to Docker Hub
+          uses: docker/login-action@v2
+          with:
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
+
+        - name: Set up QEMU
+          uses: docker/setup-qemu-action@v1
+
+        - name: Check Docker version
+          run: docker --version
+
+        - name: Build and push Docker image
+          run: |
+            docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/image-editor:${{ github.sha }} --push .
+
+        - name: Logout from Docker Hub
+          run: docker logout
+
+    deploy:
+      runs-on: ubuntu-latest
+      needs: build
+
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v2
+
+        - name: Set up SSH
+          run: |
+            mkdir -p ~/.ssh
+            ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+        - name: Deploy to EC2 Instance
+          uses: appleboy/ssh-action@v0.1.5
+          with:
+            host: ${{ secrets.EC2_HOST }}
+            username: ${{ secrets.EC2_USER }}
+            key: ${{ secrets.EC2_SSH_KEY }}
+            script: |
+              set -e  # Exit immediately if a command exits with a non-zero status.
+              echo "Pulling the latest image..."
+              docker pull ${{ secrets.DOCKER_USERNAME }}/image-editor:${{ github.sha }}
+              echo "Stopping and removing any existing container..."
+              docker stop image-editor-container || true
+              docker rm image-editor-container || true
+              echo "Starting a new container..."
+              docker run -d --name image-editor-container -p 8004:8004 --restart unless-stopped ${{ secrets.DOCKER_USERNAME }}/image-editor:${{ github.sha }}
+
